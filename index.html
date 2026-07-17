@@ -687,7 +687,7 @@
 
     function mediaHtml(ratio, { file, yt } = {}) {
       if (yt) {
-        const src = `https://www.youtube.com/embed/${yt}?autoplay=1&mute=1&loop=1&playlist=${yt}&controls=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`;
+        const src = `https://www.youtube.com/embed/${yt}?mute=1&loop=1&playlist=${yt}&controls=0&rel=0&modestbranding=1&playsinline=1&enablejsapi=1&iv_load_policy=3&cc_load_policy=0&disablekb=1&fs=0`;
         return `
           <div class="frame r-${ratio}">
             <iframe id="yt-${yt}" class="yt-frame" src="${src}" title="" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
@@ -780,6 +780,7 @@
   let ytApiReady = false;
   let pendingYtIds = [];
   const ytPlayers = {};
+  let ytObserver = null;
 
   window.onYouTubeIframeAPIReady = function () {
     ytApiReady = true;
@@ -789,7 +790,45 @@
 
   function createYtPlayer(id) {
     if (!document.getElementById(id) || ytPlayers[id]) return;
-    ytPlayers[id] = new YT.Player(id, {});
+    ytPlayers[id] = new YT.Player(id, {
+      events: {
+        // Once the player is actually ready, re-check whether it's already
+        // sitting in view (the observer only fires on a visibility change,
+        // so a player that finishes loading mid-view needs a manual nudge).
+        onReady: () => {
+          const el = document.getElementById(id);
+          if (el && ytObserver) {
+            ytObserver.unobserve(el);
+            ytObserver.observe(el);
+          }
+        },
+      },
+    });
+  }
+
+  function observeYoutubeFrames() {
+    if (!ytObserver) {
+      ytObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            const iframe = entry.target;
+            const player = ytPlayers[iframe.id];
+            if (!player || typeof player.playVideo !== 'function') return;
+            if (entry.isIntersecting) {
+              player.playVideo();
+            } else {
+              player.pauseVideo();
+              // Reset to muted so it doesn't surprise-play with sound next time.
+              if (typeof player.mute === 'function') player.mute();
+              const btn = document.querySelector(`.mute-toggle[data-yt-id="${iframe.id}"]`);
+              if (btn) btn.classList.remove('is-unmuted');
+            }
+          });
+        },
+        { threshold: 0.5 } // fires once roughly half the clip is on screen
+      );
+    }
+    document.querySelectorAll('.yt-frame').forEach((iframe) => ytObserver.observe(iframe));
   }
 
   function initYoutubePlayers() {
@@ -800,6 +839,7 @@
         pendingYtIds.push(iframe.id);
       }
     });
+    observeYoutubeFrames();
   }
 
   // Load the IFrame API script once, up front
