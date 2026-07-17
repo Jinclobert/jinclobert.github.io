@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jin clobert</title>
+<style>
+  :root {
+    --bg: #000000;
+    --ink: #FFFFFF;
+    --ink-dim: #6b6b6b;
+    --ink-mute: #3a3a3a;
+    --rule: #1c1c1c;
+    --gothic: "Malgun Gothic", "Apple SD Gothic Neo", "Pretendard", -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--gothic);
+    -webkit-font-smoothing: antialiased;
+    overscroll-behavior-y: none;
+    word-break: keep-all;
+  }
+
+  /* ---------- HOME VIEW ---------- */
+
+  #home {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 56px;
+    transition: opacity 500ms ease, filter 500ms ease;
+  }
+
+  #home.leaving {
+    opacity: 0;
+    filter: blur(6px);
+    pointer-events: none;
+  }
+
+  #logo-wrap {
+    width: min(78vw, 460px);
+  }
+  #logo-wrap svg path {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  #nav {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 700ms ease, transform 700ms ease;
+  }
+  #nav.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .project-link {
+    font-size: 15px;
+    letter-spacing: 0.14em;
+    color: var(--ink);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 2px;
+    font-family: var(--gothic);
+    position: relative;
+  }
+  .project-link::after {
+    content: "";
+    position: absolute;
+    left: 0; right: 0; bottom: -6px;
+    height: 1px;
+    background: var(--ink);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 300ms ease;
+  }
+  .project-link:hover::after { transform: scaleX(1); }
+
+  .project-link.muted {
+    color: var(--ink-mute);
+    cursor: default;
+    letter-spacing: 0.14em;
+  }
+  .project-link.muted::after { display: none; }
+  .project-link .tag {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    margin-left: 10px;
+    color: var(--ink-mute);
+    vertical-align: middle;
+  }
+
+  /* ---------- ARCHIVE VIEW ---------- */
+
+  #archive {
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+    background: var(--bg);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 500ms ease;
+  }
+  #archive.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  #archive-header {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    background: linear-gradient(var(--bg) 60%, transparent);
+  }
+  #archive-header .mark {
+    cursor: pointer;
+    display: block;
+    width: 118px;
+  }
+  #archive-header .mark svg { display: block; width: 100%; height: auto; }
+  #archive-header .mark svg path { fill: #FFFFFF; }
+  #archive-header .back {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--ink-dim);
+    cursor: pointer;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    font-family: var(--gothic);
+  }
+  #archive-header .back:hover { color: var(--ink); }
+
+  .quarter {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 84px 24px 0;
+  }
+  .quarter:last-of-type { padding-bottom: 60px; }
+
+  .quarter .index {
+    font-size: 19px;
+    letter-spacing: 0.12em;
+    color: var(--ink-dim);
+    margin-bottom: 26px;
+  }
+  .quarter .index .title {
+    color: var(--ink);
+    margin-left: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  .item-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 44px;
+  }
+
+  /* The [Light Up] reveal — sits between 4분기 and 5분기, not numbered */
+  .quarter.feature {
+    padding-top: 100px;
+  }
+  .quarter.feature .index {
+    text-align: center;
+    font-size: 22px;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    margin-bottom: 30px;
+  }
+
+  .frame {
+    border-radius: 2px;
+    background:
+      linear-gradient(160deg, #141414, #060606 65%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-mute);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+  }
+  /* Stills — native ratios mixed across the set, sized down rather than filling the column */
+  .frame.r-3-4 { aspect-ratio: 3 / 4; width: 62%; }
+  .frame.r-1-1 { aspect-ratio: 1 / 1; width: 56%; }
+  .frame.r-4-5 { aspect-ratio: 4 / 5; width: 58%; }
+  /* Motion — landscape clips run wide and short, vertical clips run narrow and tall */
+  .frame.r-16-9 { aspect-ratio: 16 / 9; width: 100%; }
+  .frame.r-9-16 { aspect-ratio: 9 / 16; width: 46%; }
+
+  /* Swipeable sub-set: e.g. 3_4_1/2/3, a single flowing sequence of frames */
+  .swipe-set {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -24px;
+    padding: 0 24px;
+    scrollbar-width: none;
+    justify-content: flex-start;
+  }
+  .swipe-set::-webkit-scrollbar { display: none; }
+  .swipe-set .frame {
+    width: 72% !important;
+    min-width: 72%;
+    scroll-snap-align: center;
+  }
+  .swipe-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .swipe-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--ink-mute);
+  }
+
+  .item-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    color: var(--ink-dim);
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  .caption {
+    margin-bottom: 18px;
+    font-size: 14px;
+    line-height: 1.8;
+    color: #d8d8d8;
+    font-weight: 300;
+    text-align: center;
+    max-width: 480px;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  .caption-line { }
+
+  /* Treatment B — a deliberate pause before the direct-address line inside 4분기.
+     Same words, more room to breathe, so the shift in tone is signalled
+     before the reader arrives at it, rather than landing abruptly. */
+  .item-block.beat {
+    padding: 46px 0 10px;
+  }
+  .item-block.beat .caption {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+
+  #signature {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+    padding: 120px 24px 100px;
+    opacity: 0;
+    transition: opacity 900ms ease;
+  }
+  #signature.visible { opacity: 1; }
+  .sig-mark {
+    width: 150px;
+  }
+  .sig-mark svg { display: block; width: 100%; height: auto; }
+  .sig-mark svg path { fill: #FFFFFF; }
+
+  .social-icons {
+    display: flex;
+    gap: 26px;
+  }
+  .social-icons a {
+    color: var(--ink-dim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    margin: -10px;
+    transition: color 220ms ease;
+  }
+  .social-icons a:hover { color: var(--ink); }
+  .social-icons svg {
+    width: 20px;
+    height: 20px;
+    pointer-events: none;
+  }
+  .linktree-mark { pointer-events: none; }
+
+  .linktree-mark {
+    display: block;
+    width: 20px;
+    height: 20px;
+    background-color: currentColor;
+    -webkit-mask-image: url("data:image/png;base64,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");
+    mask-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUCAYAAAB1PADUAAAJoklEQVR4nO2dT2hc1xWHv7TVwgiMmYXRSloNQkWihulClSOI1DYmqV2U/nHr/sNtTLspybaLZJeNIZuEQEhbtyFpbVI3rWmSpm5TKRRqQsiAigJG0UqGglCLGVpMCiY4izOvmTxrpJn3zjv3POl8ILCHmXfOO/Ob373v3vvevefOnTscYJ4Dfqh8zJ8CP1I+Zm34ROoEgv1FCCpQJQQVqBKCClQJQQWqhKACVUJQgSohqECVEFSgimdBjadOwDFua+NVUMeA3wEnE+fhkZPAq0iN3OFRUNPAFaAFvAIsJM3GFwtITWaQGk0nzWYHvAlqGrgITPS89hohKpAavNbz/wmkVq5E5UlQTaRAM7nXDwHLwJx5Rn6YQ2pwKPf6DPBbpHYu8CKoKeASd4upl4PqVHlnyjOJ1G7KJp3d8SCoMeBFpM+0G0eQX+mxivPxxDHknI/s8b4WUsPkV3+pBdUEfs/eYurlKgej+ZtDOt6D0gJeInHzl1JQDcSqZ4f83FFEhG76DRXQRJq5ib3emGMWqWlDPaMBSSWocT4aGijCUeTyuejnPZMNlxwp8fkrJGr+UghqBPgVMF/yOJPAyzjoNygyjpzTZMnjzCPN32jpjIbEWlBjwJ8oL6aMCWTU2NVYTEGmkXMZtpnrxyzwB6TmZlgL6jfAovIxs7GYZP0GBRrIOew2bFKERaTmI8rH7YuVoBroOlOeSeBNnIzFDEkT+DPlm7l+zCO1N/nBWQnqMnCi4hgzwC+ol1ONAi9Q/cXFIvIdVI6FoB5Gv5nrxyxyuV2Hjvo48AbDD5sUZRH5LirFQlAXgMcN4mTMAr8kwRXOEIwiOVqJCeQ7uFB1EKsm7wng20axQH6Nr2N8hTMgY8jVl5Vrg9T+CYtAlld5F4FzhvHmgWcxvMIZgBEkJ0sxnUNqb4L1sMEF4JRhvCVk1NlDR72B5LJkGPMUBs1cLylGyl8FThvGOwE8Q1qnGunmUPWVbi+nkVqbkmou7zJw3DDeGWSAL0VHfbQb+4xhzOMYDRPkSbna4BrSl9g2ireEuIQ1z2DXzG0jNb1mFO8uUq+HWgEexE5UZ5HLdYvmb6Qb66xBLIAOUssVo3g7klpQAG2kEGtG8c4CT3b//b8Kjp8d80nsxLQOfAmpZVI+lTqBLm3gG8jCuarmtHp5BPgXcLiCYx8GHuvGsGAd+BrwrlG8XbnH2TM2p5D5OKsR5A7FF7JZHrMfbwE/AK4bxdsTb4ICmeN6CdtpiTryFuLqN1In0ouHPlSeG0h/4GrqRBxzFamRKzGBT0EB3EQ6tCGqu7mK1OZm4jx2xGOT18sosv58KXEeXrgCfAe4lTiPvnh1qIxbSAEvpU7EAVdwLibwLyiQAn4L2aHgoPI88BDOxQT1EFTGj4GnUyeRgKfR3z6kMuokqNvAo8D51IkYch4559upExmUOgkq4yccDFGdR861VtRRUCCFtlynbs3j1FBM4H/YYC8eAZ5KnYQyj1LjvmLdBQVya9DPUyehxDmMl+xqsx8EBfKUt+XUSZRkkcRrmTQoKqgW8I5yLoEvPkuB9VVFO+UfFPxcUB8Kfcd1vcoLnBKCClQJQQWqhKACVUJQgSohqECVEFSgSggqUCUEFagSggpUCUEFqoSgAlVCUIEqIahAlRBUoEoIKlAlBBWoUlRQn1TNIvBIoe+46CMR/4ncofF+wc9rchv4N7Jp0KHEuZThFH7yH0G+46EpKqgtfN3u8xh+voyi3EtNb+7sZT/cRvUUdg9IrZrnge+nTqIMde6UjwDPsX/EBPJkuov43pptV+rsUJYPlc8ezH/UKN4l5JlYtaOODjWK/IrPGsXbBj7T/ds0inkGw32CNamjoH6G3UY868guD1vdv692X7PgBHLh42m/vz2pU5PXQAq8ZBRvE/gisJF7fRz4GzBhlMcysiPnllG8UtTFoUawFdM64kZ5MYE8G3wJu71pFpGrv1o0f3VwqAbSZ7LavLCfM+WxdiqXOyfk8e5Qo4gzWYlpN2fKc6P7XiunmkWehOxxY+7/49mhxoBfY7fh8ybwAMNvxNME/oKtU32PwURvjleHGkP6DVZiWkPcpsiuThvY9qlmEdceN4o3FB4dahzZjmPeKN4mcJLy+81NAa9j51Rt4Ls42toM/DlUExkBtxJT5kwamxdex9apWsCLiJDd4MmhmsiUQ8so3iYigFXl404j29tbOZWrHT29ONQ08AJ2YlqnGjGBfLFL2DnVJDKsYlW7XfHgUFPY7TUMMjf3INVv+HwM2UHKyqm2keGVVaN4O5LaoVrIdrBWYsrm5ix2D19FOvtWTnUUEfCCUbwdSelQ08BfsVsSYuVMeVrAy9g5FRR8JLQGqRxqDum4WolpHWkOUhS5jfSprFYpALxBIqdK4VDWD83vIBs+XzOMuRMt4I/Y/YgAjmN83tYOtYD8eqzY7MZMLSYQp/o8dov0AP6O9OPMsHSoOeQErejgw5nyzCG3fB0xjGm2j4yVQ30dWzFtIqPt3sQEktMctk61jNEadQuHOgm8UnWQHjr4dKY8KZzqNHC5ygAWDvUOdlc4Hfw6U57Mqbb3eqMSa8gwTaVYCGoL2SLeQlRfwcmc1oBcB75J9bf0Z5PgNyuOY9opbyC/yqpGxT+Ns6UcQ9AE/kE1t9OvAZ8DblVw7LuwHoeqYt7ufaTPVOQqpgUcVswF4D8UG0BdQP+BH5kzma3uTDGw2QDeBGaUjjdD8WbuIvr3+JW567cJvKeUxxpwHwbNXC8ppl5uIndvlJ007SDjK2X6TP8tmYP2MTeQc+qUzMGsz5Qn1VzedeB+ys2tLbAPNn3egRXk3Ip21NtIbZPcxJBy+coW0twMK6oO8iteVc7HE6tIv3DYIYU2UtNkdxmnXg+1gVzqDyOqL7A/nSnPCsPdj9hGBpGT3l6VWlAgN0wO4lTbiDMlWeeTiFXknPdyquTOlOFBUDCYUz3EwXCmPCvIwsB+tJHaubjx04ugoL9TZc5Uh+mUqmgjNchPKGfO5OZ5B54EBTs71UF1pjwrfHx8y5UzZXgTFHzkVMuEM+W5htRkGWfOlFH0sdJVswF8GaP5p5qxAryN09p4dKgMlwVzgtvaeBZUUENCUIEqIahAlRBUoEoIKlAlBBWoEoIKVAlBBaqEoAJVQlCBKiGoQJUQVKBKCCpQJQQVqBKCClQJQQWqhKACVUJQgSohqECVEFSgSggqUCUEFagSggpUCUEFqoSgAlVCUIEqIahAlRBUoEoIKlAlBBWoEoIKVAlBBaqEoAJVQlCBKiGoQJUQVKDKh00I0YlVD1q+AAAAAElFTkSuQmCC");
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home">
+  <div id="logo-wrap">
+    <svg viewBox="0 0 495.970913 100.758520" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(-157.029087,448.758520) scale(0.100000,-0.100000)">
+    <path d="M1868 4470 c-99 -40 -162 -93 -178 -149 -29 -102 69 -177 176 -136
+    59 22 52 28 -8 8 -41 -13 -53 -13 -90 -2 -52 17 -70 47 -64 109 3 35 11 51 40
+    77 64 59 152 42 269 -51 l57 -46 0 -274 0 -274 -81 -52 c-107 -69 -160 -91
+    -230 -97 -102 -10 -169 39 -169 122 0 84 77 127 163 92 20 -9 37 -14 37 -11 0
+    3 -16 12 -35 20 -124 51 -226 -53 -168 -173 34 -73 174 -153 267 -153 56 0
+    147 46 291 148 l110 77 6 235 c6 242 14 293 49 345 27 39 82 145 75 145 -3 0
+    -21 -18 -41 -40 -56 -62 -110 -56 -224 26 -104 74 -168 88 -252 54z m355 -235
+    c-84 -75 -93 -106 -93 -301 0 -115 -3 -154 -13 -163 -12 -9 -15 11 -20 117 -4
+    70 -7 183 -7 252 l0 126 64 -4 c45 -3 72 0 92 12 16 8 31 15 33 16 3 0 -23
+    -25 -56 -55z"/>
+    <path d="M4295 4428 c-11 -6 -32 -22 -46 -35 l-26 -24 -38 25 c-51 35 -61 33
+    -33 -6 23 -33 23 -36 23 -314 0 -254 -2 -284 -17 -301 -24 -26 -23 -30 15 -49
+    17 -9 49 -30 70 -46 l37 -30 55 47 c50 42 65 75 28 61 -8 -3 -27 4 -44 16
+    l-29 22 0 266 c0 266 5 314 36 351 26 29 9 39 -31 17z"/>
+    <path d="M5062 4401 l-40 -30 -38 19 c-44 23 -55 19 -28 -11 13 -15 20 -40 22
+    -90 l4 -69 -31 0 c-29 0 -31 -2 -31 -35 0 -32 2 -35 30 -35 l30 0 0 -173 c0
+    -142 -3 -177 -16 -195 -9 -13 -14 -24 -13 -26 2 -1 37 -14 77 -29 40 -14 86
+    -37 102 -51 l30 -24 90 46 90 47 0 184 c0 165 -2 189 -20 226 -11 23 -30 51
+    -43 63 l-22 21 -78 -65 -77 -65 0 130 c0 125 1 131 26 160 l26 31 -25 0 c-13
+    0 -42 -13 -65 -29z m140 -288 c16 -14 18 -34 18 -189 l0 -174 -27 12 c-16 7
+    -45 23 -65 35 l-38 23 0 119 0 119 43 36 c23 20 44 36 46 36 3 0 13 -7 23 -17z"/>
+    <path d="M2623 4363 c-6 -32 -10 -59 -8 -61 3 -3 85 105 85 113 0 3 -15 5 -33
+    5 -33 0 -34 -1 -44 -57z"/>
+    <path d="M6335 4285 c-94 -131 -91 -125 -66 -132 20 -5 21 -11 21 -182 0 -132
+    -4 -183 -14 -203 -14 -26 -13 -28 27 -52 23 -13 51 -33 61 -45 11 -12 23 -21
+    28 -21 19 0 128 104 119 113 -5 5 -16 4 -28 -4 -16 -9 -24 -8 -46 6 l-27 17 0
+    184 0 184 60 0 60 0 0 30 c0 30 0 30 -60 30 l-59 0 -3 86 -3 87 -70 -98z"/>
+    <path d="M2816 4191 c-44 -45 -55 -78 -21 -65 27 11 35 -34 35 -193 -1 -123
+    -4 -162 -15 -177 -21 -28 -20 -29 29 -70 l44 -36 43 39 c43 38 43 38 26 64
+    -14 22 -17 51 -17 170 l0 143 39 38 39 39 26 -26 26 -26 0 -181 c0 -192 7
+    -227 50 -250 17 -9 27 -6 58 18 54 44 75 69 63 77 -6 3 -16 3 -21 0 -6 -4 -17
+    -1 -25 5 -12 10 -15 45 -15 177 0 151 2 169 22 204 25 45 20 57 -14 35 -23
+    -15 -26 -14 -58 19 -19 19 -38 35 -43 35 -5 0 -38 -27 -74 -59 l-66 -59 -24
+    48 c-13 26 -31 55 -41 63 -17 16 -21 13 -66 -32z"/>
+    <path d="M3874 4199 c-26 -23 -58 -46 -71 -52 -23 -10 -23 -12 -23 -191 0
+    -136 -3 -187 -13 -201 -13 -19 -9 -23 70 -61 l84 -42 70 55 c47 37 67 59 61
+    65 -7 7 -20 4 -39 -10 l-29 -20 -47 29 -47 29 0 160 c0 88 3 160 8 160 4 0 17
+    -7 29 -15 11 -8 32 -19 46 -24 23 -9 28 -6 52 31 14 22 25 41 23 42 -2 1 -25
+    18 -53 37 -27 19 -55 38 -62 42 -7 4 -32 -10 -59 -34z"/>
+    <path d="M5867 4192 c-51 -52 -58 -67 -27 -59 40 10 50 -25 50 -176 0 -117 -3
+    -144 -20 -176 l-19 -38 24 -11 c13 -6 42 -27 64 -48 l41 -36 65 57 c36 32 65
+    61 65 65 0 19 -16 18 -37 -2 l-23 -21 -25 23 c-25 23 -25 26 -25 181 0 151 1
+    159 21 170 18 9 26 6 55 -22 l34 -33 35 34 c19 19 35 39 35 44 -1 6 -16 28
+    -35 49 -38 44 -47 43 -104 -17 -41 -42 -47 -44 -57 -13 -7 25 -31 55 -55 67
+    -12 7 -27 -3 -62 -38z"/>
+    <path d="M2549 4192 c-42 -38 -42 -39 -26 -62 15 -21 17 -54 17 -230 0 -203 0
+    -207 23 -228 33 -31 48 -28 101 19 53 47 57 59 19 56 l-28 -2 -3 184 c-2 158
+    0 186 14 202 19 21 16 28 -35 68 l-39 31 -43 -38z"/>
+    <path d="M4600 4200 c-19 -17 -53 -37 -77 -46 l-43 -17 0 -166 c0 -128 -4
+    -173 -15 -195 -18 -35 -18 -36 -2 -36 7 0 55 -20 105 -45 l91 -44 86 45 85 46
+    0 203 0 203 -47 16 c-27 9 -68 27 -92 41 -23 14 -46 25 -50 25 -3 -1 -22 -14
+    -41 -30z m68 -100 l52 -23 0 -163 c0 -90 -4 -164 -9 -164 -5 0 -34 11 -65 25
+    l-56 25 0 166 c0 129 3 165 13 161 6 -3 36 -15 65 -27z"/>
+    <path d="M5538 4177 l-78 -51 0 -178 c0 -145 -3 -183 -16 -202 -17 -27 -14
+    -31 32 -40 17 -4 46 -18 65 -32 18 -13 39 -24 47 -24 25 0 174 122 163 133 -7
+    7 -22 2 -47 -16 l-37 -26 -49 25 -48 24 0 54 0 54 88 78 c48 43 94 84 102 91
+    12 11 4 24 -60 88 -41 41 -77 75 -80 74 -3 0 -40 -24 -82 -52z m91 -103 c22
+    -26 39 -49 37 -53 -3 -4 -25 -21 -50 -39 l-46 -33 0 85 c0 47 4 86 9 86 5 0
+    28 -21 50 -46z"/>
+    </g>
+    </svg>
+  </div>
+
+  <div id="nav">
+    <button class="project-link" onclick="openArchive('lightup')">Light Up</button>
+    <span class="project-link muted">항해<span class="tag">작업 중</span></span>
+  </div>
+</div>
+
+<!-- ARCHIVE / PROJECT VIEW -->
+<div id="archive">
+  <div id="archive-header">
+    <span class="mark" id="header-mark" onclick="closeArchive()"></span>
+    <button class="back" onclick="closeArchive()">← Back</button>
+  </div>
+
+  <div id="quarters"></div>
+
+  <div id="signature">
+    <div class="sig-mark" id="sig-mark"></div>
+    <div class="social-icons">
+      <a href="https://www.instagram.com/jin_clobert/" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="3" y="3" width="18" height="18" rx="5"/>
+          <circle cx="12" cy="12" r="4.2"/>
+          <circle cx="17.3" cy="6.7" r="0.9" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a href="https://www.youtube.com/@Jinclobert" target="_blank" rel="noopener" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+          <rect x="2" y="5.5" width="20" height="13" rx="4"/>
+          <path d="M10.3 9.3l5.4 2.7-5.4 2.7V9.3z" fill="currentColor" stroke="none"/>
+        </svg>
+      </a>
+      <a href="https://linktr.ee/jin_clobert" target="_blank" rel="noopener" aria-label="Linktree">
+        <span class="linktree-mark"></span>
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- Content structure, mapped from Drive 260622 folder ----
+  // type: 'video' | 'image' | 'group' (a swipeable sub-set of stills)
+  // Labels are internal only — nothing here is shown on the page (no captions yet).
+  const LIGHT_UP_QUARTERS = [
+    {
+      feature: "[Light Up]",
+      // formerly the 4_4 teaser — renamed "0_아티스트 셀프 인터뷰" and moved to open the whole archive
+      items: [
+        { type: "video", ratio: "16-9" },   // 0_아티스트 셀프 인터뷰
+      ],
+    },
+    {
+      index: "1.",
+      title: "다시 시작",
+      items: [
+        { type: "video", ratio: "9-16", caption: "초심으로 다시 시작" },
+        { type: "video", ratio: "9-16", caption: "완벽할 필요는 없어.\n다시 시작하면 돼." },
+        { type: "image", ratio: "4-5", caption: "그대라면 어떤 선택을 했어?\n그림자와 상처, 그리고 빛과 축복 중에서 말야." },
+      ],
+    },
+    {
+      index: "2.",
+      title: "그림자",
+      items: [
+        { type: "video", ratio: "9-16", caption: "빛에 가려진 상처,\n당신의 그림자에 단순 위로가 아닌 이해를 드리고 싶어요." },
+        { type: "image", ratio: "1-1", caption: "저는 저의 상처들을 지우려 했어요.\n고통스러웠던 저이기에 제 음악으로 당신 마음에 불을 밝히고 싶어요." },
+        { type: "group", count: 2, ratio: "3-4", caption: "전 울었어요.\n\u201c괜찮아. 다 잘될 거야\u201d 식의 위로 따위는 더 이상 와닿지 않았거든요." },
+        { type: "video", ratio: "16-9", caption: "상처 받기 무서워 사람들을 피하고 어느 순간 어둠으로 들어갔어요.\n허나 그땐 몰랐죠. 더 행복해지기 위해 본의 아니게 어둠으로 들어갔다는 걸요." },
+      ],
+    },
+    {
+      index: "3.",
+      title: "빛",
+      items: [
+        { type: "video", ratio: "9-16", caption: "저의 상처들을 지울 수 없었기에, 저는 그걸 축복으로 생각하려 해요.\n이제 상처를 품은 채로 다시 시작합니다." },
+        { type: "image", ratio: "3-4", caption: "이제 우리 그만 힘들고 행복해집시다.\n혼자면 어때요. 빈자리도 결국 저로 채워지는 것 같아요." },
+        { type: "group", count: 2, ratio: "1-1", caption: "우릴 위한 불은 켜졌어요.\n음악으로 저의 상처를 먼저 드러낼게요. 제 위로가 더 와닿을 수 있도록요." },
+        { type: "group", count: 3, ratio: "4-5", caption: "자, 이제 그대라면 어떤 선택을 했어?\n그림자와 빛, 그리고 상처와 축복 중에서 말야." },
+      ],
+    },
+    {
+      index: "4.",
+      title: "그림자와 빛의 공존",
+      items: [
+        {
+          type: "image", ratio: "3-4", beat: true,
+          caption: "[Light Up]은 억지로 밝아지기 위해 불을 켜는 게 아니에요.\n저는 다신 꺼지지 않게 불을 켜려고 합니다.",
+        },
+        { type: "image", ratio: "1-1" },
+        { type: "image", ratio: "4-5" },
+      ],
+    },
+    {
+      feature: "[Light Up]",
+      // the title-track reveal — album first, then the film
+      items: [
+        {
+          type: "image", ratio: "4-5", subtitle: "[Light Up] 앨범",
+          caption: "저에게 그리고 여러분께 전하는 편지\n진심으로 감사합니다.",
+        },
+        { type: "video", ratio: "16-9", subtitle: "[Light Up] Visual Film" },
+      ],
+    },
+    {
+      index: "5.",
+      title: "에필로그",
+      items: [
+        { type: "video", ratio: "16-9" },   // Epilogue
+      ],
+    },
+  ];
+
+  // ---- Static wordmark (same traced vector as the hero, no draw-in) ----
+  const STATIC_MARK_SVG = `
+    <svg viewBox="0 0 495.970913 100.758520" xmlns="http://www.w3.org/2000/svg">
+    <g transform="translate(-157.029087,448.758520) scale(0.100000,-0.100000)" stroke="none">
+    <path d="M1868 4470 c-99 -40 -162 -93 -178 -149 -29 -102 69 -177 176 -136
+    59 22 52 28 -8 8 -41 -13 -53 -13 -90 -2 -52 17 -70 47 -64 109 3 35 11 51 40
+    77 64 59 152 42 269 -51 l57 -46 0 -274 0 -274 -81 -52 c-107 -69 -160 -91
+    -230 -97 -102 -10 -169 39 -169 122 0 84 77 127 163 92 20 -9 37 -14 37 -11 0
+    3 -16 12 -35 20 -124 51 -226 -53 -168 -173 34 -73 174 -153 267 -153 56 0
+    147 46 291 148 l110 77 6 235 c6 242 14 293 49 345 27 39 82 145 75 145 -3 0
+    -21 -18 -41 -40 -56 -62 -110 -56 -224 26 -104 74 -168 88 -252 54z m355 -235
+    c-84 -75 -93 -106 -93 -301 0 -115 -3 -154 -13 -163 -12 -9 -15 11 -20 117 -4
+    70 -7 183 -7 252 l0 126 64 -4 c45 -3 72 0 92 12 16 8 31 15 33 16 3 0 -23
+    -25 -56 -55z"/>
+    <path d="M4295 4428 c-11 -6 -32 -22 -46 -35 l-26 -24 -38 25 c-51 35 -61 33
+    -33 -6 23 -33 23 -36 23 -314 0 -254 -2 -284 -17 -301 -24 -26 -23 -30 15 -49
+    17 -9 49 -30 70 -46 l37 -30 55 47 c50 42 65 75 28 61 -8 -3 -27 4 -44 16
+    l-29 22 0 266 c0 266 5 314 36 351 26 29 9 39 -31 17z"/>
+    <path d="M5062 4401 l-40 -30 -38 19 c-44 23 -55 19 -28 -11 13 -15 20 -40 22
+    -90 l4 -69 -31 0 c-29 0 -31 -2 -31 -35 0 -32 2 -35 30 -35 l30 0 0 -173 c0
+    -142 -3 -177 -16 -195 -9 -13 -14 -24 -13 -26 2 -1 37 -14 77 -29 40 -14 86
+    -37 102 -51 l30 -24 90 46 90 47 0 184 c0 165 -2 189 -20 226 -11 23 -30 51
+    -43 63 l-22 21 -78 -65 -77 -65 0 130 c0 125 1 131 26 160 l26 31 -25 0 c-13
+    0 -42 -13 -65 -29z m140 -288 c16 -14 18 -34 18 -189 l0 -174 -27 12 c-16 7
+    -45 23 -65 35 l-38 23 0 119 0 119 43 36 c23 20 44 36 46 36 3 0 13 -7 23 -17z"/>
+    <path d="M2623 4363 c-6 -32 -10 -59 -8 -61 3 -3 85 105 85 113 0 3 -15 5 -33
+    5 -33 0 -34 -1 -44 -57z"/>
+    <path d="M6335 4285 c-94 -131 -91 -125 -66 -132 20 -5 21 -11 21 -182 0 -132
+    -4 -183 -14 -203 -14 -26 -13 -28 27 -52 23 -13 51 -33 61 -45 11 -12 23 -21
+    28 -21 19 0 128 104 119 113 -5 5 -16 4 -28 -4 -16 -9 -24 -8 -46 6 l-27 17 0
+    184 0 184 60 0 60 0 0 30 c0 30 0 30 -60 30 l-59 0 -3 86 -3 87 -70 -98z"/>
+    <path d="M2816 4191 c-44 -45 -55 -78 -21 -65 27 11 35 -34 35 -193 -1 -123
+    -4 -162 -15 -177 -21 -28 -20 -29 29 -70 l44 -36 43 39 c43 38 43 38 26 64
+    -14 22 -17 51 -17 170 l0 143 39 38 39 39 26 -26 26 -26 0 -181 c0 -192 7
+    -227 50 -250 17 -9 27 -6 58 18 54 44 75 69 63 77 -6 3 -16 3 -21 0 -6 -4 -17
+    -1 -25 5 -12 10 -15 45 -15 177 0 151 2 169 22 204 25 45 20 57 -14 35 -23
+    -15 -26 -14 -58 19 -19 19 -38 35 -43 35 -5 0 -38 -27 -74 -59 l-66 -59 -24
+    48 c-13 26 -31 55 -41 63 -17 16 -21 13 -66 -32z"/>
+    <path d="M3874 4199 c-26 -23 -58 -46 -71 -52 -23 -10 -23 -12 -23 -191 0
+    -136 -3 -187 -13 -201 -13 -19 -9 -23 70 -61 l84 -42 70 55 c47 37 67 59 61
+    65 -7 7 -20 4 -39 -10 l-29 -20 -47 29 -47 29 0 160 c0 88 3 160 8 160 4 0 17
+    -7 29 -15 11 -8 32 -19 46 -24 23 -9 28 -6 52 31 14 22 25 41 23 42 -2 1 -25
+    18 -53 37 -27 19 -55 38 -62 42 -7 4 -32 -10 -59 -34z"/>
+    <path d="M5867 4192 c-51 -52 -58 -67 -27 -59 40 10 50 -25 50 -176 0 -117 -3
+    -144 -20 -176 l-19 -38 24 -11 c13 -6 42 -27 64 -48 l41 -36 65 57 c36 32 65
+    61 65 65 0 19 -16 18 -37 -2 l-23 -21 -25 23 c-25 23 -25 26 -25 181 0 151 1
+    159 21 170 18 9 26 6 55 -22 l34 -33 35 34 c19 19 35 39 35 44 -1 6 -16 28
+    -35 49 -38 44 -47 43 -104 -17 -41 -42 -47 -44 -57 -13 -7 25 -31 55 -55 67
+    -12 7 -27 -3 -62 -38z"/>
+    <path d="M2549 4192 c-42 -38 -42 -39 -26 -62 15 -21 17 -54 17 -230 0 -203 0
+    -207 23 -228 33 -31 48 -28 101 19 53 47 57 59 19 56 l-28 -2 -3 184 c-2 158
+    0 186 14 202 19 21 16 28 -35 68 l-39 31 -43 -38z"/>
+    <path d="M4600 4200 c-19 -17 -53 -37 -77 -46 l-43 -17 0 -166 c0 -128 -4
+    -173 -15 -195 -18 -35 -18 -36 -2 -36 7 0 55 -20 105 -45 l91 -44 86 45 85 46
+    0 203 0 203 -47 16 c-27 9 -68 27 -92 41 -23 14 -46 25 -50 25 -3 -1 -22 -14
+    -41 -30z m68 -100 l52 -23 0 -163 c0 -90 -4 -164 -9 -164 -5 0 -34 11 -65 25
+    l-56 25 0 166 c0 129 3 165 13 161 6 -3 36 -15 65 -27z"/>
+    <path d="M5538 4177 l-78 -51 0 -178 c0 -145 -3 -183 -16 -202 -17 -27 -14
+    -31 32 -40 17 -4 46 -18 65 -32 18 -13 39 -24 47 -24 25 0 174 122 163 133 -7
+    7 -22 2 -47 -16 l-37 -26 -49 25 -48 24 0 54 0 54 88 78 c48 43 94 84 102 91
+    12 11 4 24 -60 88 -41 41 -77 75 -80 74 -3 0 -40 -24 -82 -52z m91 -103 c22
+    -26 39 -49 37 -53 -3 -4 -25 -21 -50 -39 l-46 -33 0 85 c0 47 4 86 9 86 5 0
+    28 -21 50 -46z"/>
+    </g>
+    </svg>`;
+
+  document.getElementById('header-mark').innerHTML = STATIC_MARK_SVG;
+  document.getElementById('sig-mark').innerHTML = STATIC_MARK_SVG;
+
+  const stage = { home: document.getElementById('home'), archive: document.getElementById('archive') };
+  const nav = document.getElementById('nav');
+  const quartersEl = document.getElementById('quarters');
+  const signatureEl = document.getElementById('signature');
+
+  // ---- Draw-in (same technique as the logo demo) ----
+  function playDrawIn() {
+    const paths = Array.from(document.querySelectorAll('#logo-wrap path'));
+    const ordered = paths.map(p => ({ el: p, x: p.getBBox().x })).sort((a, b) => a.x - b.x);
+    const n = ordered.length;
+    const TOTAL = 1500, PORTION = 0.72;
+
+    ordered.forEach(({ el }, i) => {
+      const len = el.getTotalLength();
+      el.style.fill = 'none';
+      el.style.strokeDasharray = len;
+      el.style.strokeDashoffset = len;
+      el.style.opacity = '1';
+      const dur = TOTAL * PORTION * 0.55;
+      const start = (TOTAL * (1 - PORTION)) * (i / Math.max(n - 1, 1));
+      requestAnimationFrame(() => {
+        el.style.transition = `stroke-dashoffset ${dur}ms cubic-bezier(0.45,0.05,0.35,1) ${start}ms`;
+        el.style.strokeDashoffset = '0';
+      });
+    });
+
+    setTimeout(() => {
+      ordered.forEach(({ el }) => {
+        el.style.transition = 'fill 320ms ease-out, stroke-width 320ms ease-out';
+        el.style.fill = '#FFFFFF';
+        el.style.strokeWidth = '0';
+      });
+      nav.classList.add('visible');
+    }, TOTAL + 60);
+  }
+
+  document.querySelectorAll('#logo-wrap path').forEach(p => p.style.opacity = '0');
+  window.addEventListener('load', () => setTimeout(playDrawIn, 250));
+
+  // ---- Archive open/close ----
+  function captionHtml(caption) {
+    if (!caption) return '';
+    const lines = caption.split('\n').map(l => `<div class="caption-line">${l}</div>`).join('');
+    return `<div class="caption">${lines}</div>`;
+  }
+
+  function renderItem(item) {
+    const blockClass = item.beat ? 'item-block beat' : 'item-block';
+    const subtitle = item.subtitle ? `<div class="subtitle">${item.subtitle}</div>` : '';
+
+    if (item.type === "group") {
+      const dots = Array.from({ length: item.count }).map(() => '<span></span>').join('');
+      const frames = Array.from({ length: item.count })
+        .map(() => `<div class="frame r-${item.ratio}">사진</div>`)
+        .join('');
+      return `
+        <div class="${blockClass}">
+          ${subtitle}
+          ${captionHtml(item.caption)}
+          <div class="swipe-set">${frames}</div>
+          <div class="swipe-dots">${dots}</div>
+        </div>`;
+    }
+    const label = item.type === "video" ? "영상" : "사진";
+    return `
+      <div class="${blockClass}">
+        ${subtitle}
+        ${captionHtml(item.caption)}
+        <div class="frame r-${item.ratio}">${label}</div>
+      </div>`;
+  }
+
+  function buildQuarters(data) {
+    quartersEl.innerHTML = data.map(q => {
+      if (q.feature) {
+        return `
+          <div class="quarter feature">
+            <div class="index">${q.feature}</div>
+            <div class="item-stack">
+              ${q.items.map(renderItem).join('')}
+            </div>
+          </div>`;
+      }
+      return `
+        <div class="quarter">
+          <div class="index">${q.index}<span class="title">${q.title}</span></div>
+          <div class="item-stack">
+            ${q.items.map(renderItem).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function openArchive(project) {
+    if (project === 'lightup') buildQuarters(LIGHT_UP_QUARTERS);
+    stage.home.classList.add('leaving');
+    signatureEl.classList.remove('visible');
+    setTimeout(() => {
+      stage.archive.classList.add('visible');
+      stage.archive.scrollTo(0, 0);
+    }, 350);
+  }
+
+  function closeArchive() {
+    stage.archive.classList.remove('visible');
+    stage.home.classList.remove('leaving');
+  }
+
+  // Reveal the quiet signature only once the reader nears the end
+  stage.archive.addEventListener('scroll', () => {
+    const el = stage.archive;
+    const nearBottom = el.scrollTop + el.clientHeight > el.scrollHeight - 200;
+    if (nearBottom) signatureEl.classList.add('visible');
+  });
+</script>
+
+</body>
+</html>
