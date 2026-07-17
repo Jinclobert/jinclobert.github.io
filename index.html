@@ -218,31 +218,36 @@
     height: 100%;
     border: 0;
   }
-  /* Stills — native ratios mixed across the set, sized down rather than filling the column */
-  .frame.r-3-4 { aspect-ratio: 3 / 4; width: 62%; }
-  .frame.r-1-1 { aspect-ratio: 1 / 1; width: 56%; }
-  .frame.r-4-5 { aspect-ratio: 4 / 5; width: 58%; }
+  /* Stills — native ratios mixed across the set, sized to viewport height so
+     each photo/video reads as near-fullscreen on mobile, not a small tile. */
+  .frame.r-3-4 { aspect-ratio: 3 / 4; height: 70vh; max-width: 92%; }
+  .frame.r-1-1 { aspect-ratio: 1 / 1; height: 62vh; max-width: 92%; }
+  .frame.r-4-5 { aspect-ratio: 4 / 5; height: 72vh; max-width: 92%; }
   /* Motion — landscape clips run wide and short, vertical clips run narrow and tall */
   .frame.r-16-9 { aspect-ratio: 16 / 9; width: 100%; }
-  .frame.r-9-16 { aspect-ratio: 9 / 16; width: 46%; }
+  .frame.r-9-16 { aspect-ratio: 9 / 16; height: 78vh; max-width: 92%; }
 
-  /* Swipeable sub-set: e.g. 3_4_1/2/3, a single flowing sequence of frames */
+  /* Swipeable sub-set: e.g. 3_4_1/2/3, a single flowing sequence of frames.
+     Each frame lives in its own full-width "page" so it sits dead-center at
+     rest — the next photo only appears once the reader actually swipes. */
   .swipe-set {
     display: flex;
-    gap: 10px;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
     margin: 0 -24px;
-    padding: 0 24px;
     scrollbar-width: none;
-    justify-content: flex-start;
   }
   .swipe-set::-webkit-scrollbar { display: none; }
-  .swipe-set .frame {
-    width: 72% !important;
-    min-width: 72%;
+  .swipe-page {
+    flex: 0 0 100%;
+    box-sizing: border-box;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     scroll-snap-align: center;
+    scroll-snap-stop: always;
   }
   .swipe-dots {
     display: flex;
@@ -471,7 +476,7 @@
       feature: "[Light Up]",
       // formerly the 4_4 teaser — renamed "0_아티스트 셀프 인터뷰" and moved to open the whole archive
       items: [
-        { type: "video", ratio: "16-9", yt: "MI7PxpfIToI" },
+        { type: "video", ratio: "9-16", yt: "MI7PxpfIToI" },
       ],
     },
     {
@@ -490,7 +495,7 @@
         { type: "video", ratio: "9-16", yt: "w7SsK-WQSao", caption: "빛에 가려진 상처,\n당신의 그림자에 단순 위로가 아닌 이해를 드리고 싶어요." },
         { type: "image", ratio: "1-1", file: "2_2.jpg", caption: "저는 저의 상처들을 지우려 했어요.\n고통스러웠던 저이기에 제 음악으로 당신 마음에 불을 밝히고 싶어요." },
         { type: "group", count: 2, ratio: "3-4", files: ["2_3_1.jpg", "2_3_2.jpg"], caption: "전 울었어요.\n\u201c괜찮아. 다 잘될 거야\u201d 식의 위로 따위는 더 이상 와닿지 않았거든요." },
-        { type: "video", ratio: "16-9", yt: "0TMf1cHwj8E", caption: "상처 받기 무서워 사람들을 피하고 어느 순간 어둠으로 들어갔어요.\n허나 그땐 몰랐죠. 더 행복해지기 위해 본의 아니게 어둠으로 들어갔다는 걸요." },
+        { type: "video", ratio: "9-16", yt: "0TMf1cHwj8E", caption: "상처 받기 무서워 사람들을 피하고 어느 순간 어둠으로 들어갔어요.\n허나 그땐 몰랐죠. 더 행복해지기 위해 본의 아니게 어둠으로 들어갔다는 걸요." },
       ],
     },
     {
@@ -530,7 +535,7 @@
       index: "5.",
       title: "에필로그",
       items: [
-        { type: "video", ratio: "16-9", yt: "nd_E8A4qBA4" },
+        { type: "video", ratio: "9-16", yt: "nd_E8A4qBA4" },
       ],
     },
   ];
@@ -667,7 +672,7 @@
     if (item.type === "group") {
       const dots = Array.from({ length: item.count }).map(() => '<span></span>').join('');
       const frames = Array.from({ length: item.count })
-        .map((_, i) => mediaHtml(item.ratio, { file: item.files ? item.files[i] : null }))
+        .map((_, i) => `<div class="swipe-page">${mediaHtml(item.ratio, { file: item.files ? item.files[i] : null })}</div>`)
         .join('');
       return `
         <div class="${blockClass}">
