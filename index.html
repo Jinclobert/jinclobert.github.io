@@ -256,6 +256,10 @@
   /* Swipeable sub-set: e.g. 3_4_1/2/3, a single flowing sequence of frames.
      Each frame lives in its own full-width "page" so it sits dead-center at
      rest — the next photo only appears once the reader actually swipes. */
+  .swipe-wrap {
+    position: relative;
+    width: 100%;
+  }
   .swipe-set {
     display: flex;
     overflow-x: auto;
@@ -274,6 +278,32 @@
     justify-content: center;
     scroll-snap-align: center;
     scroll-snap-stop: always;
+  }
+  .swipe-arrow { display: none; }
+  /* Mouse users get hover-revealed arrows; touch devices keep the swipe gesture only */
+  @media (hover: hover) and (pointer: fine) {
+    .swipe-arrow {
+      display: flex;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(0, 0, 0, 0.5);
+      color: #FFFFFF;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 200ms ease;
+      z-index: 3;
+    }
+    .swipe-wrap:hover .swipe-arrow { opacity: 1; }
+    .swipe-arrow.prev { left: 4px; }
+    .swipe-arrow.next { right: 4px; }
+    .swipe-arrow svg { width: 16px; height: 16px; }
   }
   .swipe-dots {
     display: flex;
@@ -719,7 +749,15 @@
         <div class="${blockClass}">
           ${subtitle}
           ${captionHtml(item.caption)}
-          <div class="swipe-set">${frames}</div>
+          <div class="swipe-wrap">
+            <div class="swipe-set">${frames}</div>
+            <button class="swipe-arrow prev" aria-label="이전 사진">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <button class="swipe-arrow next" aria-label="다음 사진">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
           <div class="swipe-dots">${dots}</div>
         </div>`;
     }
@@ -802,6 +840,14 @@
   }
 
   quartersEl.addEventListener('click', (e) => {
+    const arrow = e.target.closest('.swipe-arrow');
+    if (arrow) {
+      const set = arrow.closest('.swipe-wrap').querySelector('.swipe-set');
+      const dir = arrow.classList.contains('next') ? 1 : -1;
+      set.scrollBy({ left: dir * set.clientWidth, behavior: 'smooth' });
+      return;
+    }
+
     const btn = e.target.closest('.mute-toggle');
     if (!btn) return;
     const video = btn.closest('.frame').querySelector('.native-video');
