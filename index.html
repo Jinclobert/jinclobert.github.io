@@ -413,10 +413,17 @@
   .item-block.beat .caption {
     display: flex;
     flex-direction: column;
-    gap: 20px;
     font-size: 15px;
     letter-spacing: 0.01em;
     color: var(--ink);
+  }
+  /* First line break (1→2) stays close, like the other captions' line breaks */
+  .item-block.beat .caption-line:nth-child(2) {
+    margin-top: 6px;
+  }
+  /* The pause before the final sentence — the deliberate beat from before */
+  .item-block.beat .caption-line:nth-child(3) {
+    margin-top: 24px;
   }
 
   #signature {
