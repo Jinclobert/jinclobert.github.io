@@ -211,19 +211,17 @@
     position: relative;
     overflow: hidden;
   }
-  .frame img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
+  /* One shared height ceiling for every photo and clip — width is left to
+     each file's own real aspect ratio, so nothing is cropped or stretched,
+     and moving from item to item never feels like a sudden zoom. */
+  .frame img,
   .frame video {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
     display: block;
+    height: 68vh;
+    height: 68svh;
+    width: auto;
+    max-width: 92%;
+    max-height: 68svh;
   }
   .mute-toggle {
     position: absolute;
@@ -246,14 +244,14 @@
   .mute-toggle .icon-unmuted { display: none; }
   .mute-toggle.is-unmuted .icon-muted { display: none; }
   .mute-toggle.is-unmuted .icon-unmuted { display: block; }
-  /* Stills — native ratios mixed across the set, sized to viewport height so
-     each photo/video reads as near-fullscreen on mobile, not a small tile. */
-  .frame.r-3-4 { aspect-ratio: 3 / 4; height: 70vh; height: 70svh; max-width: 92%; }
-  .frame.r-1-1 { aspect-ratio: 1 / 1; height: 62vh; height: 62svh; max-width: 92%; }
-  .frame.r-4-5 { aspect-ratio: 4 / 5; height: 72vh; height: 72svh; max-width: 92%; }
-  /* Motion — landscape clips run wide and short, vertical clips run narrow and tall */
-  .frame.r-16-9 { aspect-ratio: 16 / 9; width: 100%; }
-  .frame.r-9-16 { aspect-ratio: 9 / 16; height: 78vh; height: 78svh; max-width: 92%; }
+  /* Only used for the rare "not uploaded yet" placeholder state */
+  .frame.placeholder {
+    aspect-ratio: 3 / 4;
+    height: 68vh;
+    height: 68svh;
+    max-width: 92%;
+  }
+
 
   /* Swipeable sub-set: e.g. 3_4_1/2/3, a single flowing sequence of frames.
      Each frame lives in its own full-width "page" so it sits dead-center at
@@ -690,7 +688,7 @@
     function mediaHtml(ratio, { file, video } = {}) {
       if (video) {
         return `
-          <div class="frame r-${ratio}">
+          <div class="frame">
             <video class="native-video" src="${video}" muted loop playsinline preload="metadata"></video>
             <button class="mute-toggle" aria-label="소리 켜기/끄기">
               <svg class="icon-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
@@ -707,9 +705,9 @@
           </div>`;
       }
       if (file) {
-        return `<div class="frame r-${ratio}"><img src="${file}" alt="" loading="lazy"></div>`;
+        return `<div class="frame"><img src="${file}" alt="" loading="lazy"></div>`;
       }
-      return `<div class="frame r-${ratio}">비어있음</div>`; // no source yet — shows as empty placeholder
+      return `<div class="frame placeholder">비어있음</div>`; // no source yet — shows as empty placeholder
     }
 
     if (item.type === "group") {
