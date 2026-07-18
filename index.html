@@ -784,7 +784,7 @@
       if (video) {
         return `
           <div class="frame r-${ratio}">
-            <video class="native-video" src="${video}" muted loop playsinline preload="metadata"></video>
+            <video class="native-video" src="${video}" muted loop playsinline preload="metadata" disableRemotePlayback disablePictureInPicture></video>
             <div class="play-state-icon">
               <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
               <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
