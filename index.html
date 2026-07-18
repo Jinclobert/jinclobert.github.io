@@ -238,6 +238,31 @@
     height: 100%;
     object-fit: cover;
   }
+  .play-state-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 4;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.5);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 250ms ease;
+  }
+  .play-state-icon.show { opacity: 1; }
+  .play-state-icon svg { width: 26px; height: 26px; }
+  .play-state-icon .icon-play { display: none; }
+  .play-state-icon.state-pause .icon-play { display: none; }
+  .play-state-icon.state-pause .icon-pause { display: block; }
+  .play-state-icon.state-play .icon-pause { display: none; }
+  .play-state-icon.state-play .icon-play { display: block; }
   .mute-toggle {
     position: absolute;
     z-index: 2;
@@ -735,6 +760,10 @@
         return `
           <div class="frame r-${ratio}">
             <video class="native-video" src="${video}" muted loop playsinline preload="metadata"></video>
+            <div class="play-state-icon">
+              <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+            </div>
             <button class="mute-toggle" aria-label="소리 켜기/끄기">
               <svg class="icon-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M4 9v6h4l5 5V4L8 9H4z"/>
@@ -888,13 +917,24 @@
     // Tapping the clip itself (not the mute button) toggles play/pause.
     const tappedVideo = e.target.closest('.native-video');
     if (tappedVideo) {
+      const stateIcon = tappedVideo.closest('.frame').querySelector('.play-state-icon');
       if (tappedVideo.paused) {
         tappedVideo.play().catch(() => {});
+        flashStateIcon(stateIcon, 'play');
       } else {
         tappedVideo.pause();
+        flashStateIcon(stateIcon, 'pause');
       }
     }
   });
+
+  function flashStateIcon(el, state) {
+    if (!el) return;
+    el.classList.remove('state-play', 'state-pause');
+    el.classList.add(`state-${state}`, 'show');
+    clearTimeout(el._flashTimer);
+    el._flashTimer = setTimeout(() => el.classList.remove('show'), 700);
+  }
 </script>
 
 </body>
