@@ -211,17 +211,28 @@
     position: relative;
     overflow: hidden;
   }
-  /* One shared height ceiling for every photo and clip — width is left to
-     each file's own real aspect ratio, so nothing is cropped or stretched,
-     and moving from item to item never feels like a sudden zoom. */
-  .frame img,
-  .frame video {
+  /* Photos: one shared height ceiling, width follows each file's own real
+     aspect ratio — nothing cropped or stretched, sizes stay consistent
+     between items. */
+  .frame img {
     display: block;
     height: 68vh;
     height: 68svh;
     width: auto;
     max-width: 92%;
     max-height: 68svh;
+  }
+  /* Video: known, controlled ratios (vertical clips vs. the one landscape
+     film), so the frame is sized explicitly and the clip fills it. */
+  .frame.r-9-16 { aspect-ratio: 9 / 16; height: 78vh; height: 78svh; max-width: 92%; }
+  .frame.r-16-9 { aspect-ratio: 16 / 9; width: 100%; }
+  .frame.r-9-16 video,
+  .frame.r-16-9 video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   .mute-toggle {
     position: absolute;
@@ -718,7 +729,7 @@
     function mediaHtml(ratio, { file, video } = {}) {
       if (video) {
         return `
-          <div class="frame">
+          <div class="frame r-${ratio}">
             <video class="native-video" src="${video}" muted loop playsinline preload="metadata"></video>
             <button class="mute-toggle" aria-label="소리 켜기/끄기">
               <svg class="icon-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
