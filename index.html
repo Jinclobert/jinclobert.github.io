@@ -848,7 +848,7 @@
             }
           });
         },
-        { threshold: 0.5 } // fires once roughly half the clip is on screen
+        { threshold: 0.67 } // fires once roughly 2/3 of the clip is on screen
       );
     }
     document.querySelectorAll('.native-video').forEach((video) => videoObserver.observe(video));
@@ -864,23 +864,35 @@
     }
 
     const btn = e.target.closest('.mute-toggle');
-    if (!btn) return;
-    const video = btn.closest('.frame').querySelector('.native-video');
-    if (!video) return;
+    if (btn) {
+      const video = btn.closest('.frame').querySelector('.native-video');
+      if (!video) return;
 
-    if (video.muted) {
-      // Only one clip plays with sound at a time — mute any others first.
-      document.querySelectorAll('.mute-toggle.is-unmuted').forEach((other) => {
-        if (other === btn) return;
-        const otherVideo = other.closest('.frame').querySelector('.native-video');
-        if (otherVideo) otherVideo.muted = true;
-        other.classList.remove('is-unmuted');
-      });
-      video.muted = false;
-      btn.classList.add('is-unmuted');
-    } else {
-      video.muted = true;
-      btn.classList.remove('is-unmuted');
+      if (video.muted) {
+        // Only one clip plays with sound at a time — mute any others first.
+        document.querySelectorAll('.mute-toggle.is-unmuted').forEach((other) => {
+          if (other === btn) return;
+          const otherVideo = other.closest('.frame').querySelector('.native-video');
+          if (otherVideo) otherVideo.muted = true;
+          other.classList.remove('is-unmuted');
+        });
+        video.muted = false;
+        btn.classList.add('is-unmuted');
+      } else {
+        video.muted = true;
+        btn.classList.remove('is-unmuted');
+      }
+      return;
+    }
+
+    // Tapping the clip itself (not the mute button) toggles play/pause.
+    const tappedVideo = e.target.closest('.native-video');
+    if (tappedVideo) {
+      if (tappedVideo.paused) {
+        tappedVideo.play().catch(() => {});
+      } else {
+        tappedVideo.pause();
+      }
     }
   });
 </script>
