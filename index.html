@@ -913,7 +913,12 @@
         { threshold: 0.67 } // fires once roughly 2/3 of the clip is on screen
       );
     }
-    document.querySelectorAll('.native-video').forEach((video) => videoObserver.observe(video));
+    document.querySelectorAll('.native-video').forEach((video) => {
+      // Some browsers only fully respect this as a JS property, not just the
+      // HTML attribute, which is what caused the brief cast-icon flash.
+      video.disableRemotePlayback = true;
+      videoObserver.observe(video);
+    });
     initSeekBars();
   }
 
@@ -924,24 +929,43 @@
 
       const bar = video.closest('.frame').querySelector('.seek-bar');
       const fill = bar.querySelector('.seek-fill');
+      let dragging = false;
 
       video.addEventListener('pause', () => bar.classList.add('show'));
       video.addEventListener('play', () => bar.classList.remove('show'));
       video.addEventListener('timeupdate', () => {
-        if (video.duration) {
+        if (!dragging && video.duration) {
           fill.style.width = `${(video.currentTime / video.duration) * 100}%`;
         }
       });
 
-      bar.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
+      function seekTo(clientX) {
         const rect = bar.getBoundingClientRect();
-        const fraction = Math.min(Math.max((e.clientX - rect.left) / rect.width, 0), 1);
+        const fraction = Math.min(Math.max((clientX - rect.left) / rect.width, 0), 1);
         if (video.duration) {
           video.currentTime = fraction * video.duration;
           fill.style.width = `${fraction * 100}%`;
         }
+      }
+
+      bar.addEventListener('pointerdown', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        dragging = true;
+        bar.setPointerCapture(e.pointerId);
+        seekTo(e.clientX);
+      });
+      bar.addEventListener('pointermove', (e) => {
+        if (!dragging) return;
+        e.preventDefault();
+        seekTo(e.clientX);
+      });
+      bar.addEventListener('pointerup', (e) => {
+        dragging = false;
+        bar.releasePointerCapture(e.pointerId);
+      });
+      bar.addEventListener('pointercancel', () => {
+        dragging = false;
       });
     });
   }
